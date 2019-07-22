@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<title>SimpleVote</title>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+	<link rel="stylesheet" type="text/css" href="/css/style.css">
+	<link href='https://fonts.googleapis.com/css?family=Open+Sans:300' rel='stylesheet' type='text/css'>
+</head>
+<body>
+	<div id="fb-root"></div> <!-- fb comment api -->
+	<script async defer crossorigin="anonymous" src="https://connect.facebook.net/zh_HK/sdk.js#xfbml=1&version=v3.3"></script>
+	<div class="container">
+		<fieldset>
+			<h1>SimpleVote</h1>
+			<hr>
+			<p />
+			<form action="/submitVote" method="post" id="submitVoteForm">
+				<% if(data !== null){ %>
+				<h4><%= data.title %></h4>
+				<h6>Start at: <%= data.startTime %></h6>
+				<h6>End at: <%= data.endTime %></h6>
+				<hr>
+				<input type="hidden" name="id" id="id" value="<%= data.id %>"/>
+				<input type="hidden" name="candidatesJson" id="candidatesJson" value="<%= data.candidates %>"/>
+					<% candidates.forEach(function(candidate){ %>
+						<% if(candidate.name !== "null"){ %> <!-- not the last "null" candidate -->
+						<div class="custom-control custom-radio">
+							<input type="radio" class="custom-control-input" id="<%= candidate.name %>" value="<%= candidate.name %>" name="candidate">
+							<label class="custom-control-label" id="label_<%= candidate.name %>" for="<%= candidate.name %>"><%= candidate.name %> (Vote: <%= candidate.vote %>)</label>
+						</div>
+						<% } %>
+					<% }); %>
+				<% } %>
+				<br />
+				<input type="text" name="HKID" id="HKID" class="form-control" placeholder="HKID no." required>
+				<input type="button" class="button" id="submitVote" value="Submit" <%= submitDisable %> ><br/>
+				<input type="button" class="button" onclick="location.href = '/';" value="Back">
+			</form><br/>
+			<h4>Express your view!</h4><br/>
+			<div class="fb-comments" data-href="<%= link %>" data-width="700" data-numposts="5"></div> <!-- fb comment api -->
+		</fieldset>
+	</div>
+	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+	<script>
+		$("#submitVote").on('click' ,function(){
+			var campaignID = $("#id").val();
+			var HKID = $("input#HKID").val();
+			var voteCandidate = $("input[name=candidate]:checked").val();
+			var candidatesJson = $("#candidatesJson").val();
+			//alert(campaignID + " ; " + HKID + " ; " + voteCandidate + " ; " + candidatesJson);
+			if(voteCandidate != undefined) { //check if candidate is selected
+				if(isHKID(HKID)) { //HKID validation check
+					$.ajax({
+						url: '/submitVote',
+						method: 'POST',
+						data: { campaignID: campaignID, voteCandidate: voteCandidate, HKID: HKID, candidatesJson: candidatesJson}
+					}).done(function(res) {
+						if (res.success == 1) {
+							var votedLabelID = "[id='label_"+voteCandidate+"']";
+							var newVote = res.vote+1;
+							var newText = voteCandidate + " (Vote: " + newVote + ") You voted!";
+							$(votedLabelID).text(newText);
+							
+						} else {
+							alert(res.msg);
+						}
+					});
+				} else alert("HKID is invalid!");
+			} else alert("Please select your option!");
+		});
+		function isHKID(str) { //source: http://hknothingblog.blogspot.com/2013/01/javascript-to-validate-hkid-number.html
+			var strValidChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
+			// basic check length
+			if (str.length < 8)
+				return false;
+
+			// handling bracket
+			if (str.charAt(str.length-3) == '(' && str.charAt(str.length-1) == ')')
+				str = str.substring(0, str.length - 3) + str.charAt(str.length -2);
+
+			// convert to upper case
+			str = str.toUpperCase();
+
+			// regular expression to check pattern and split
+			var hkidPat = /^([A-Z]{1,2})([0-9]{6})([A0-9])$/;
+			var matchArray = str.match(hkidPat);
+
+			// not match, return false
+			if (matchArray == null)
+				return false;
+
+			// the character part, numeric part and check digit part
+			var charPart = matchArray[1];
+			var numPart = matchArray[2];
+			var checkDigit = matchArray[3];
+
+			// calculate the checksum for character part
+			var checkSum = 0;
+			if (charPart.length == 2) {
+				checkSum += 9 * (10 + strValidChars.indexOf(charPart.charAt(0)));
+				checkSum += 8 * (10 + strValidChars.indexOf(charPart.charAt(1)));
+			} else {
+				checkSum += 9 * 36;
+				checkSum += 8 * (10 + strValidChars.indexOf(charPart));
+			}
+
+			// calculate the checksum for numeric part
+			for (var i = 0, j = 7; i < numPart.length; i++, j--)
+				checkSum += j * numPart.charAt(i);
+
+			// verify the check digit
+			var remaining = checkSum % 11;
+			var verify = remaining == 0 ? 0 : 11 - remaining;
+
+			return verify == checkDigit || (verify == 10 && checkDigit == 'A');
+		}
+	</script>
+</body>
+</html>

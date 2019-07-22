@@ -1,0 +1,31 @@
+CREATE USER 'simplevote'@'localhost' IDENTIFIED BY 'simplevote';
+
+--login mysql as simplevote
+
+CREATE DATABASE IF NOT EXISTS `SimpleVote` DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+USE `SimpleVote`;
+
+CREATE TABLE IF NOT EXISTS `admin` (
+  `id` int(11) NOT NULL PRIMARY KEY,
+  `username` varchar(32) NOT NULL,
+  `password` char(32) NOT NULL
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+
+INSERT INTO `admin` (`id`, `username`, `password`) VALUES (1, 'admin', '27F981C812E2EC330D449FD17910E80C'); //pw: simplevote
+
+CREATE TABLE IF NOT EXISTS `campaign` (
+  `id` int(11) AUTO_INCREMENT NOT NULL PRIMARY KEY,
+  `title` varchar(255) NOT NULL, 
+  `startTime` DATETIME NOT NULL,
+  `endTime` DATETIME NOT NULL,
+  `candidates` TEXT NOT NULL
+); //ALTER TABLE `campaign` MODIFY `title` varchar(500) NOT NULL;
+
+CREATE TABLE `votes` (
+    `id` int(11) AUTO_INCREMENT NOT NULL PRIMARY KEY,
+    `HKID` varchar(11) NOT NULL,
+    `voteCandidate` varchar(32) NOT NULL,
+    `campaignID` int(11) NOT NULL,
+     FOREIGN KEY fk_campaignID(campaignID) REFERENCES campaign(id) ON UPDATE CASCADE ON DELETE RESTRICT
+);
+
