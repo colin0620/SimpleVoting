@@ -1,4 +1,5 @@
 CREATE USER 'simplevote'@'localhost' IDENTIFIED BY 'simplevote';
+GRANT ALL PRIVILEGES ON *.* TO 'simplevote'@'localhost';
 
 --login mysql as simplevote
 
@@ -19,7 +20,7 @@ CREATE TABLE IF NOT EXISTS `campaign` (
   `startTime` DATETIME NOT NULL,
   `endTime` DATETIME NOT NULL,
   `candidates` TEXT NOT NULL
-); //ALTER TABLE `campaign` MODIFY `title` varchar(500) NOT NULL;
+); 
 
 CREATE TABLE `votes` (
     `id` int(11) AUTO_INCREMENT NOT NULL PRIMARY KEY,
@@ -28,4 +29,3 @@ CREATE TABLE `votes` (
     `campaignID` int(11) NOT NULL,
      FOREIGN KEY fk_campaignID(campaignID) REFERENCES campaign(id) ON UPDATE CASCADE ON DELETE RESTRICT
 );
-
