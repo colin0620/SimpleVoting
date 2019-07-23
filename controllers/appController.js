@@ -19,8 +19,8 @@ exports.list_all_campaigns = function(req, res) {
 					campaigns.shift(); //remove it from the beginning
 				} else i++;
 			}
-			res.render('index', {datas: campaigns});
 		}
+		res.render('index', {datas: campaigns});
 		res.end();
 	});
 };
