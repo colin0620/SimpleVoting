@@ -1,8 +1,5 @@
 # SimpleVoting
 
-Demo site:
-http://18.217.44.106/
-
 ## Dependencies: (My testing version)
 - nodeJS : 8.1.4
 - mysql: 5.5.62
